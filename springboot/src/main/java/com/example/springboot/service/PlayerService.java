@@ -13,4 +13,6 @@ public interface PlayerService {
     void save(Player player);
 
     void delete(int id);
+
+    List<List<Player>> generateTeamsWithBalancedRating();
 }

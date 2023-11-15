@@ -40,4 +40,13 @@ public class PlayerDAOImpl implements PlayerDAO {
         Session currentSession = entityManager.unwrap(Session.class);
         currentSession.delete(currentSession.get(Player.class, id));
     }
+
+    public List<Player> getPlayersByIds(List<Integer> playerIds){
+        Session currentSession = entityManager.unwrap(Session.class);
+        Query query = currentSession.createQuery("from Player where id in : ids", Player.class);
+        query.setParameter("ids", playerIds);
+        return query.getResultList();
+    }
+
+
 }
