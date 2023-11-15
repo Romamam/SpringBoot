@@ -48,7 +48,6 @@ public class PlayerController {
 
     @GetMapping("/generated-teams")
     public List<List<Player>> generatedTeams(){
-
         return playerService.generateTeamsWithBalancedRating();
     }
 }

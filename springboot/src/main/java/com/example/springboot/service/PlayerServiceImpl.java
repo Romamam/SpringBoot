@@ -66,8 +66,8 @@ public class PlayerServiceImpl implements PlayerService {
         List<List<Player>> teams = new ArrayList<>();
         teams.add(team1);
         teams.add(team2);
-        System.out.println("team1: " + ratingTeam1/(totalPlayers/2));
-        System.out.println("team2: " + ratingTeam2/(totalPlayers/2));
+        System.out.println("team1: " + ratingTeam1/(half));
+        System.out.println("team2: " + ratingTeam2/(half));
         return teams;
     }
 
