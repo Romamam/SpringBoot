@@ -5,6 +5,7 @@ import com.example.springboot.model.Player;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @Repository
 public class PlayerDAOImpl implements PlayerDAO {
 
+    @Autowired
     private EntityManager entityManager;
 
     @Override
@@ -23,16 +25,19 @@ public class PlayerDAOImpl implements PlayerDAO {
 
     @Override
     public Player get(int id) {
-        return null;
+        Session currentSession = entityManager.unwrap(Session.class);
+        return currentSession.get(Player.class, id);
     }
 
     @Override
     public void save(Player player) {
-
+        Session currentSession = entityManager.unwrap(Session.class);
+        currentSession.saveOrUpdate(player);
     }
 
     @Override
     public void delete(int id) {
-
+        Session currentSession = entityManager.unwrap(Session.class);
+        currentSession.delete(currentSession.get(Player.class, id));
     }
 }

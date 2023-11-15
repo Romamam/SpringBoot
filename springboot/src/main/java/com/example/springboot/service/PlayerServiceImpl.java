@@ -24,18 +24,18 @@ public class PlayerServiceImpl implements PlayerService {
     @Transactional
     @Override
     public Player get(int id) {
-        return null;
+        return playerDAO.get(id);
     }
 
     @Transactional
     @Override
     public void save(Player player) {
-
+        playerDAO.save(player);
     }
 
     @Transactional
     @Override
     public void delete(int id) {
-
+        playerDAO.delete(id);
     }
 }
