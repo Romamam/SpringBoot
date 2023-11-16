@@ -2,42 +2,39 @@ package com.example.springboot.dao;
 
 
 import com.example.springboot.model.Player;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class PlayerDAOImpl implements PlayerDAO {
+public class PlayerDAOImpl {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final PlayerDAOInter dao;
 
-    @Override
+    public PlayerDAOImpl(PlayerDAOInter dao) {
+        this.dao = dao;
+    }
+
+
     public List<Player> get() {
-        Session currentSession = entityManager.unwrap(Session.class);
-        Query query = currentSession.createQuery("from Player", Player.class);
-        return (List<Player>) query.getResultList();
+        ArrayList<Player> list = new ArrayList<>();
+        dao.findAll().forEach(list::add);
+        return list;
     }
 
-    @Override
     public Player get(int id) {
-        Session currentSession = entityManager.unwrap(Session.class);
-        return currentSession.get(Player.class, id);
+        return dao.findById(id).orElseThrow();
     }
 
-    @Override
+
     public void save(Player player) {
-        Session currentSession = entityManager.unwrap(Session.class);
-        currentSession.saveOrUpdate(player);
+        dao.save(player);
     }
 
-    @Override
-    public void delete(int id) {
-        Session currentSession = entityManager.unwrap(Session.class);
-        currentSession.delete(currentSession.get(Player.class, id));
+    public void deleteById(int id){
+        dao.deleteById(id);
     }
+
+
 }

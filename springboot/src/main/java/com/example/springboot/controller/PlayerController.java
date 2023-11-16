@@ -11,8 +11,11 @@ import java.util.List;
 @RequestMapping("/api")
 public class PlayerController {
 
-    @Autowired
-    private PlayerService playerService;
+    private final PlayerService playerService;
+
+    public PlayerController(PlayerService playerService) {
+        this.playerService = playerService;
+    }
 
     @GetMapping("/players")
     public List<Player> get(){
@@ -39,6 +42,7 @@ public class PlayerController {
         playerService.delete(id);
         return "Player has benn deleted with id: " + id;
     }
+
 
     @PutMapping("/player")
     public Player update(@RequestBody Player playerObj){
