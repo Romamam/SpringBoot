@@ -3,7 +3,6 @@ package com.example.springboot.service;
 
 import com.example.springboot.dao.PlayerDAOImpl;
 import com.example.springboot.model.Player;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

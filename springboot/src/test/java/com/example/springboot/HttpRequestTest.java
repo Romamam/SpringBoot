@@ -26,7 +26,9 @@ public class HttpRequestTest {
 
     @Test
     void greetingShouldReturnDefaultMessage() throws Exception {
-        playerDAO.save(new Player());
+        Player player = new Player();
+        player.setId(1);
+        playerDAO.save(player);
        String response = (this.restTemplate.getForObject("http://localhost:" + port + "/api/players",
                 String.class));
 
@@ -34,4 +36,30 @@ public class HttpRequestTest {
 
         assertThat(response).contains("\"id\":" + playerIdToCheck);
     }
+
+    @Test
+    void testDelete(){
+        Player player = new Player();
+        player.setId(1);
+        playerDAO.save(player);
+        restTemplate.delete("http://localhost:" + port + "/api/player/" + player.getId());
+
+        String response = restTemplate.getForObject("http://localhost:" + port + "/api/player", String.class);
+        assertThat(response).doesNotContain("\"id\":" + player.getId());
+    }
+
+    @Test
+    void testUpdate(){
+        Player player = new Player();
+        player.setName("John");
+        playerDAO.save(player);
+
+        player.setName("UpdatedName");
+
+        restTemplate.put("http://localhost:" + port + "/api/player", player);
+
+        String response = restTemplate.getForObject("http://localhost:" + port + "/api/players", String.class);
+        assertThat(response).contains("\"name\":\"UpdatedName\"");
+    }
+
 }

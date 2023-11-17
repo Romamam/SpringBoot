@@ -2,7 +2,6 @@ package com.example.springboot.controller;
 
 import com.example.springboot.model.Player;
 import com.example.springboot.service.PlayerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,9 +37,8 @@ public class PlayerController {
     }
 
     @DeleteMapping("/player/{id}")
-    public String delete(@PathVariable int id){
+    public void delete(@PathVariable int id){
         playerService.delete(id);
-        return "Player has benn deleted with id: " + id;
     }
 
 
