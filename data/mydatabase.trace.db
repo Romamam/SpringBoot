@@ -1,0 +1,12 @@
+2023-11-23 19:00:24 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TEAMS" not found; SQL statement:
+select t1_0.id from teams t1_0 where t1_0.id=? [42102-214]
+2023-11-23 19:06:49 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TEAMS" not found; SQL statement:
+select t1_0.id from teams t1_0 where t1_0.id=? [42102-214]
+2023-11-23 19:23:45 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TEAMS" not found; SQL statement:
+select t1_0.id from teams t1_0 where t1_0.id=? [42102-214]
+2023-11-23 19:53:32 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TEAMS" not found; SQL statement:
+select t1_0.id from teams t1_0 where t1_0.id=? [42102-214]

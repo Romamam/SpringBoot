@@ -47,11 +47,6 @@ public class PlayerController {
         return playerDAO.save(playerObj);
     }
 
-//    @GetMapping("/generated-teams")
-//    public List<List<Player>> generatedTeams(){
-//        return playerService.generateTeamsWithBalancedRating();
-//    }
-
 
     @GetMapping("/generated-teams")
     public List<List<Player>> generateTeamsWithBalancedRating() {
