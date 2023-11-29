@@ -19,6 +19,8 @@ target/
 *.iws
 *.iml
 *.ipr
+../data.mv.db
+../data.trace.db
 
 
 ### NetBeans ###
