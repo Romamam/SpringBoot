@@ -9,6 +9,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "players")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Player {
 
     @Id
