@@ -5,10 +5,7 @@ import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,13 +19,13 @@ public class TeamService {
         this.playerService = playerService;
     }
 
-    public Optional<Team> getTeamWithPlayersById(int id){
+    public Optional<Team> getTeamWithPlayersById(UUID id){
         return teamDAO.findByIdWithPlayers(id);
     }
 
     public Optional<Team> getTeamByName(String name){return teamDAO.findByTeamName(name);}
 
-    public void deleteTeamById(int id){teamDAO.deleteById(id);}
+    public void deleteTeamById(UUID id){teamDAO.deleteById(id);}
 
     public List<List<Player>> generateTeamsWithBalancedRating(String teamName1, String teamName2){
         List<Player> allPlayers = playerService.listOfPlayers();

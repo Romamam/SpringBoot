@@ -31,11 +31,11 @@ public class PlayerService {
         return playerDAO.save(player);
     }
 
-    public Player getPlayerById(int id){
+    public Player getPlayerById(UUID id){
         return playerDAO.findById(id).orElseThrow();
     }
 
-    public void deletePlayerById(int id){
+    public void deletePlayerById(UUID id){
         playerDAO.deleteById(id);
     }
 

@@ -27,12 +27,12 @@ public class PlayerController {
     }
 
     @GetMapping("/player/{id}")
-    public Player get(@PathVariable int id){
+    public Player get(@PathVariable UUID id){
         return playerService.getPlayerById(id);
     }
 
     @DeleteMapping("/player/{id}")
-    public void delete(@PathVariable int id){
+    public void delete(@PathVariable UUID id){
         playerService.deletePlayerById(id);
     }
 

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/team")
@@ -24,7 +25,7 @@ public class TeamController {
     }
 
     @DeleteMapping("/delete-team/{id}")
-    public void deleteTeamById(@PathVariable int id){teamService.deleteTeamById(id);}
+    public void deleteTeamById(@PathVariable UUID id){teamService.deleteTeamById(id);}
 
     @GetMapping("/generated-teams/{teamName1}-{teamName2}")
     public List<List<Player>> generateTeamsWithBalancedRating(@PathVariable String teamName1, @PathVariable String teamName2) {
@@ -32,7 +33,7 @@ public class TeamController {
     }
 
     @GetMapping("/get-team/{id}")
-    public Optional<Team> getTeamById(@PathVariable int id){
+    public Optional<Team> getTeamById(@PathVariable UUID id){
         return teamService.getTeamWithPlayersById(id);
     }
 
