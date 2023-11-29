@@ -1,4 +1,4 @@
-HELP.md
+springboot/HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -14,13 +14,12 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-../data/
-../idea/
+data/
+.idea/
 *.iws
 *.iml
 *.ipr
-../data.mv.db
-../data.trace.db
+data.mv.db
 
 
 ### NetBeans ###
