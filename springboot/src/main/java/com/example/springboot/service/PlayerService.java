@@ -2,6 +2,8 @@ package com.example.springboot.service;
 
 import com.example.springboot.dao.PlayerDAOInter;
 import com.example.springboot.model.Player;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,10 +17,8 @@ public class PlayerService {
         this.playerDAO = playerDAO;
     }
 
-    public List<Player> listOfPlayers(){
-        ArrayList<Player> list = new ArrayList<>();
-        playerDAO.findAll().forEach(list::add);
-        return list;
+    public Page<Player> listOfPlayers(Pageable pageable){
+        return playerDAO.findAll(pageable);
     }
 
     public List<Player> playerList(){
