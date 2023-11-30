@@ -19,7 +19,7 @@ public class TeamController {
         this.teamService = teamService;
     }
 
-    @GetMapping("/teamByName/{name}")
+    @GetMapping("/team-by-name/{name}")
     public Optional<Team> getTeamByName(@PathVariable String name){
         return teamService.getTeamByName(name);
     }
