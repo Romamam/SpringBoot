@@ -10,7 +10,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.List;
 import java.util.UUID;
 
-@RepositoryRestResource(collectionResourceRel = "people", path = "people")
+@RepositoryRestResource(collectionResourceRel = "players", path = "players")
 public interface PlayerDAOInter extends PagingAndSortingRepository<Player, UUID>, CrudRepository<Player, UUID> {
     Page<Player> findAll(Pageable pageable);
 
