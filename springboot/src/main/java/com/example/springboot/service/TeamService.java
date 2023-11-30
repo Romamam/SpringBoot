@@ -28,7 +28,7 @@ public class TeamService {
     public void deleteTeamById(UUID id){teamDAO.deleteById(id);}
 
     public List<List<Player>> generateTeamsWithBalancedRating(String teamName1, String teamName2){
-        List<Player> allPlayers = playerService.listOfPlayers();
+        List<Player> allPlayers = playerService.playerList();
 
         if (allPlayers.size() < 22) {
             System.out.println("There is no required number of players to create teams");

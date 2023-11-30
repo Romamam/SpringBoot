@@ -36,14 +36,14 @@ public class PlayerControllerTests {
                 new Player(UUID.randomUUID(), "Jane", "Doe", 85)
         );
 
-        when(playerService.listOfPlayers()).thenReturn(players);
+        when(playerService.playerList()).thenReturn(players);
 
         mockMvc.perform(get("/api/players"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.size()").value(players.size()));
 
-        verify(playerService, times(1)).listOfPlayers();
+        verify(playerService, times(1)).playerList();
         verifyNoMoreInteractions(playerService);
     }
 

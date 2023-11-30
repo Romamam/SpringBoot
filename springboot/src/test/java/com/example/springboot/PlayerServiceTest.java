@@ -26,7 +26,7 @@ class PlayerServiceTests {
         List<Player> players = Arrays.asList(new Player(), new Player());
         Mockito.when(playerDAO.findAll()).thenReturn(players);
 
-        List<Player> result = playerService.listOfPlayers();
+        List<Player> result = playerService.playerList();
 
         Assertions.assertEquals(players, result);
     }
