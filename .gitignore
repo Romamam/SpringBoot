@@ -14,10 +14,12 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
+data/
 .idea/
 *.iws
 *.iml
 *.ipr
+data.mv.db
 
 
 ### NetBeans ###
