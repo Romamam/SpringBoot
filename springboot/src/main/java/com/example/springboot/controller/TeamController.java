@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.dao.PlayerRepository;
+import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import com.example.springboot.service.TeamService;
@@ -16,10 +17,12 @@ public class TeamController {
 
     private final TeamService teamService;
     private final PlayerRepository playerRepository;
+    private final TeamRepository teamRepository;
 
-    public TeamController(TeamService teamService, PlayerRepository playerRepository) {
+    public TeamController(TeamService teamService, PlayerRepository playerRepository, TeamRepository teamRepository) {
         this.teamService = teamService;
         this.playerRepository = playerRepository;
+        this.teamRepository = teamRepository;
     }
 
 
@@ -53,6 +56,6 @@ public class TeamController {
 
     @DeleteMapping("/delete")
     public void deleteAllTeams(){
-        teamService.deleteAllTeams();
+        teamRepository.deleteAll();
     }
 }
