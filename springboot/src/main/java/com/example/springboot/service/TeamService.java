@@ -1,22 +1,25 @@
 package com.example.springboot.service;
 
-import com.example.springboot.dao.TeamDAOInter;
+import com.example.springboot.dao.PlayerRepository;
+import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class TeamService {
 
-    private final TeamDAOInter teamDAO;
-    private final PlayerService playerService;
+    private final TeamRepository teamDAO;
+    private final PlayerRepository playerDAO;
 
-    public TeamService(TeamDAOInter teamDAO, PlayerService playerService) {
+    public TeamService(TeamRepository teamDAO, PlayerRepository playerDAO) {
         this.teamDAO = teamDAO;
-        this.playerService = playerService;
+        this.playerDAO = playerDAO;
     }
 
     public Optional<Team> getTeamWithPlayersById(UUID id){
@@ -27,79 +30,95 @@ public class TeamService {
 
     public void deleteTeamById(UUID id){teamDAO.deleteById(id);}
 
-    public List<List<Player>> generateTeamsWithBalancedRating(String teamName1, String teamName2){
-        List<Player> allPlayers = playerService.playerList();
+    public Optional<Team> addPlayerToTeam(Player player, String name){
+        Optional<Team> teamOptional = getTeamByName(name);
 
-        if (allPlayers.size() < 22) {
-            System.out.println("There is no required number of players to create teams");
-            return Collections.emptyList();
+        if (teamOptional.isPresent()) {
+            Team team = teamOptional.get();
+            team.getPlayers().add(player);
+
+            int teamRating = calculateTeamRating(team.getPlayers());
+            team.setRating(teamRating);
+
+            teamDAO.save(team);
         }
 
-        List<Player> selectedPlayers = getRandomPlayers(allPlayers, 22);
+        return teamOptional;
+    }
 
-        List<Player> team1 = new ArrayList<>();
-        List<Player> team2 = new ArrayList<>();
+    public void deletePlayerFromTeam(String teamName, String playerName) {
+        Optional<Team> teamOptional = getTeamByName(teamName);
 
-        for (int i = 0; i < selectedPlayers.size(); i++) {
-            if (i % 2 == 0) {
-                team1.add(selectedPlayers.get(i));
-            } else {
-                team2.add(selectedPlayers.get(i));
-            }
+        if (teamOptional.isPresent()) {
+            Team team = teamOptional.get();
+            List<Player> players = team.getPlayers();
+
+            Optional<Player> playerOptional = players.stream()
+                    .filter(player -> player.getName().equals(playerName))
+                    .findFirst();
+
+            int rating = players.stream().mapToInt(Player::getRating).sum()/players.size();
+
+            playerOptional.ifPresent(player -> {
+                players.remove(player);
+                team.setRating(rating);
+                teamDAO.save(team);
+            });
         }
+    }
 
-        int team1Rating = calculateTeamRating(team1);
-        int team2Rating = calculateTeamRating(team2);
+    public List<List<Player>> generateTeamsWithBalancedRating(int count, String teamName1, String teamName2){
+        List<Player> listOfRandomPlayers = playerDAO.findRandomPlayers(count);
+        int countOfPlayersInTeam = count/2;
+        int ratingTeam1;
+        int ratingTeam2;
 
-        while (Math.abs(team1Rating - team2Rating) > 20) {
-            Collections.shuffle(selectedPlayers);
+        List<List<Player>> bestTeams = new ArrayList<>();
+        int smallestDifference = Integer.MAX_VALUE;
 
-            team1 = new ArrayList<>();
-            team2 = new ArrayList<>();
-            for (int i = 0; i < selectedPlayers.size(); i++) {
-                if (i % 2 == 0) {
-                    team1.add(selectedPlayers.get(i));
-                } else {
-                    team2.add(selectedPlayers.get(i));
+        for(int i = 0; i < (1 << listOfRandomPlayers.size()); i++){
+            List<Player> team1 = new ArrayList<>();
+            List<Player> team2 = new ArrayList<>();
+
+            for(int j = 0; j < listOfRandomPlayers.size(); j++){
+                if((i & (1 << j)) > 0) {
+                    team1.add(listOfRandomPlayers.get(j));
+                }else {
+                    team2.add(listOfRandomPlayers.get(j));
                 }
             }
 
-            team1Rating = calculateTeamRating(team1);
-            team2Rating = calculateTeamRating(team2);
+            ratingTeam1 = calculateTeamRating(team1);
+            ratingTeam2 = calculateTeamRating(team2);
+            int difference = Math.abs(ratingTeam1 - ratingTeam2);
+
+            if(difference < smallestDifference){
+
+                smallestDifference = difference;
+                bestTeams.clear();
+                System.out.println(i + "  team1: " + ratingTeam1 + " team2: " + ratingTeam2);
+                bestTeams.add(new ArrayList<>(team1));
+                bestTeams.add(new ArrayList<>(team2));
+
+            }
         }
+        saveTeam(bestTeams.get(0), calculateTeamRating(bestTeams.get(0)) / countOfPlayersInTeam, teamName1);
+        saveTeam(bestTeams.get(1), calculateTeamRating(bestTeams.get(1)) / countOfPlayersInTeam, teamName2);
 
-        Team savedTeam1 = saveTeam(team1, team1Rating/11, teamName1);
-        Team savedTeam2 = saveTeam(team2, team2Rating/11, teamName2);
-
-        System.out.println("team1: " + team1Rating/11);
-        System.out.println("team2: " + team2Rating/11);
-        List<List<Player>> result = new ArrayList<>();
-        result.add(team1);
-        result.add(team2);
-
-        return result;
-    }
-
-    public List<Player> getRandomPlayers(List<Player> allPlayers, int count) {
-        Collections.shuffle(allPlayers);
-        return allPlayers.stream().limit(count).collect(Collectors.toList());
+        return bestTeams;
     }
 
     public int calculateTeamRating(List<Player> team) {
         return team.stream().mapToInt(Player::getRating).sum();
     }
 
-    public Team saveTeam(List<Player> team, int rating, String teamName) {
+    public void saveTeam(List<Player> team, int rating, String teamName) {
         Team newTeam = new Team();
         newTeam.setTeamName(teamName);
         newTeam.setRating(rating);
 
         newTeam.setPlayers(team);
-
-        newTeam = teamDAO.save(newTeam);
-
-        playerService.savePlayers(team);
-
-        return newTeam;
+        playerDAO.saveAll(team);
+        teamDAO.save(newTeam);
     }
 }
