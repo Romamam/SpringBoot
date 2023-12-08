@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class TeamService {
@@ -67,44 +69,46 @@ public class TeamService {
         }
     }
 
-    public List<List<Player>> generateTeamsWithBalancedRating(int count, String teamName1, String teamName2){
+    public List<List<Player>> generateTeamsWithBalancedRating(int count, String teamName1, String teamName2) {
         List<Player> listOfRandomPlayers = playerDAO.findRandomPlayers(count);
-        int countOfPlayersInTeam = count/2;
-        int ratingTeam1;
-        int ratingTeam2;
+        int countOfPlayersInTeam = count / 2;
 
         List<List<Player>> bestTeams = new ArrayList<>();
         int smallestDifference = Integer.MAX_VALUE;
 
-        for(int i = 0; i < (1 << listOfRandomPlayers.size()); i++){
-            List<Player> team1 = new ArrayList<>();
-            List<Player> team2 = new ArrayList<>();
+        List<List<Player>> allCombinations = IntStream.range(0, 1 << listOfRandomPlayers.size())
+                .mapToObj(i -> IntStream.range(0, listOfRandomPlayers.size())
+                        .filter(j -> (i & (1 << j)) > 0)
+                        .mapToObj(listOfRandomPlayers::get)
+                        .collect(Collectors.toList()))
+                .filter(team -> team.size() == countOfPlayersInTeam)
+                .toList();
 
-            for(int j = 0; j < listOfRandomPlayers.size(); j++){
-                if((i & (1 << j)) > 0) {
-                    team1.add(listOfRandomPlayers.get(j));
-                }else {
-                    team2.add(listOfRandomPlayers.get(j));
-                }
+        for (List<Player> team : allCombinations) {
+            List<Player> remainingPlayers = listOfRandomPlayers.stream().filter(p -> !team.contains(p)).collect(Collectors.toList());
+
+            if (remainingPlayers.size() != countOfPlayersInTeam) {
+                continue;
             }
 
-            ratingTeam1 = calculateTeamRating(team1);
-            ratingTeam2 = calculateTeamRating(team2);
+            int ratingTeam1 = calculateTeamRating(team);
+            int ratingTeam2 = calculateTeamRating(remainingPlayers);
             int difference = Math.abs(ratingTeam1 - ratingTeam2);
 
-            if(difference < smallestDifference){
-
+            if (difference < smallestDifference) {
                 smallestDifference = difference;
                 bestTeams.clear();
-                System.out.println(i + "  team1: " + ratingTeam1 + " team2: " + ratingTeam2);
-                bestTeams.add(new ArrayList<>(team1));
-                bestTeams.add(new ArrayList<>(team2));
-
+                bestTeams.add(new ArrayList<>(team));
+                bestTeams.add(new ArrayList<>(remainingPlayers));
             }
         }
+
         saveTeam(bestTeams.get(0), calculateTeamRating(bestTeams.get(0)) / countOfPlayersInTeam, teamName1);
         saveTeam(bestTeams.get(1), calculateTeamRating(bestTeams.get(1)) / countOfPlayersInTeam, teamName2);
 
+        for(List<Player> player: bestTeams){
+        System.out.println(player.toString());
+        }
         return bestTeams;
     }
 
