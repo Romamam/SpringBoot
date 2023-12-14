@@ -16,21 +16,22 @@ import java.util.stream.IntStream;
 @Service
 public class TeamService {
 
-    private final TeamRepository teamDAO;
-    private final PlayerRepository playerDAO;
+    private final TeamRepository teamRepository;
+    private final PlayerRepository playerRepository;
 
     public TeamService(TeamRepository teamDAO, PlayerRepository playerDAO) {
-        this.teamDAO = teamDAO;
-        this.playerDAO = playerDAO;
+        this.teamRepository = teamDAO;
+        this.playerRepository = playerDAO;
     }
 
     public Optional<Team> getTeamWithPlayersById(UUID id){
-        return teamDAO.findByIdWithPlayers(id);
+        return teamRepository.findByIdWithPlayers(id);
     }
 
-    public Optional<Team> getTeamByName(String name){return teamDAO.findByTeamName(name);}
+    public Optional<Team> getTeamByName(String name){return teamRepository.findByTeamName(name);}
 
-    public void deleteTeamById(UUID id){teamDAO.deleteById(id);}
+    public void deleteTeamById(UUID id){
+        teamRepository.deleteById(id);}
 
     public Optional<Team> addPlayerToTeam(Player player, String name){
         Optional<Team> teamOptional = getTeamByName(name);
@@ -42,7 +43,7 @@ public class TeamService {
             int teamRating = calculateTeamRating(team.getPlayers());
             team.setRating(teamRating);
 
-            teamDAO.save(team);
+            teamRepository.save(team);
         }
 
         return teamOptional;
@@ -64,14 +65,14 @@ public class TeamService {
             playerOptional.ifPresent(player -> {
                 players.remove(player);
                 team.setRating(rating);
-                teamDAO.save(team);
+                teamRepository.save(team);
             });
         }
     }
 
-    public List<List<Player>> generateTeamsWithBalancedRating(int count, String teamName1, String teamName2) {
-        List<Player> listOfRandomPlayers = playerDAO.findRandomPlayers(count);
-        int countOfPlayersInTeam = count / 2;
+    public List<List<Player>> generateTeamsWithBalancedRating(int count, String[] teamNames) {
+        List<Player> listOfRandomPlayers = playerRepository.findRandomPlayers(count);
+        int countOfPlayersInTeam = count / teamNames.length;
 
         List<List<Player>> bestTeams = new ArrayList<>();
         int smallestDifference = Integer.MAX_VALUE;
@@ -91,27 +92,34 @@ public class TeamService {
                 continue;
             }
 
-            int ratingTeam1 = calculateTeamRating(team);
-            int ratingTeam2 = calculateTeamRating(remainingPlayers);
-            int difference = Math.abs(ratingTeam1 - ratingTeam2);
+            int ratingDifference = calculateTeamRatingDifference(team, remainingPlayers);
 
-            if (difference < smallestDifference) {
-                smallestDifference = difference;
+            if (ratingDifference < smallestDifference) {
+                smallestDifference = ratingDifference;
                 bestTeams.clear();
                 bestTeams.add(new ArrayList<>(team));
                 bestTeams.add(new ArrayList<>(remainingPlayers));
             }
         }
 
-        saveTeam(bestTeams.get(0), calculateTeamRating(bestTeams.get(0)) / countOfPlayersInTeam, teamName1);
-        saveTeam(bestTeams.get(1), calculateTeamRating(bestTeams.get(1)) / countOfPlayersInTeam, teamName2);
+        for (int i = 0; i < teamNames.length; i++) {
+            String teamName = teamNames[i];
+            List<Player> teamPlayers = bestTeams.get(i);
+            int teamRating = calculateTeamRating(teamPlayers) / countOfPlayersInTeam;
+            saveTeam(teamPlayers, teamRating, teamName);
+        }
 
-        for(List<Player> player: bestTeams){
-        System.out.println(player.toString());
+        for (List<Player> player : bestTeams) {
+            System.out.println(player.toString());
         }
         return bestTeams;
     }
 
+    public int calculateTeamRatingDifference(List<Player> team1, List<Player> team2) {
+        int ratingTeam1 = calculateTeamRating(team1);
+        int ratingTeam2 = calculateTeamRating(team2);
+        return Math.abs(ratingTeam1 - ratingTeam2);
+    }
     public int calculateTeamRating(List<Player> team) {
         return team.stream().mapToInt(Player::getRating).sum();
     }
@@ -122,7 +130,7 @@ public class TeamService {
         newTeam.setRating(rating);
 
         newTeam.setPlayers(team);
-        playerDAO.saveAll(team);
-        teamDAO.save(newTeam);
+        playerRepository.saveAll(team);
+        teamRepository.save(newTeam);
     }
 }

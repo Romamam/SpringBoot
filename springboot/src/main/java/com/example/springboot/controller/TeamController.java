@@ -5,6 +5,7 @@ import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import com.example.springboot.service.TeamService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,9 +35,9 @@ public class TeamController {
     @DeleteMapping("/delete-by-id/{id}")
     public void deleteTeamById(@PathVariable UUID id){teamService.deleteTeamById(id);}
 
-    @GetMapping("/generated-teams/{count}-{teamName1}-{teamName2}")
-    public List<List<Player>> generateTeamsWithBalancedRating(@PathVariable int count, @PathVariable String teamName1, @PathVariable String teamName2) {
-        return teamService.generateTeamsWithBalancedRating(count, teamName1, teamName2);
+    @GetMapping("/generated-teams/{count}")
+    public List<List<Player>> generateTeamsWithBalancedRating(@PathVariable int count, @RequestParam String[] teamNames) {
+        return teamService.generateTeamsWithBalancedRating(count, teamNames);
 }
 
     @GetMapping("/get-by-id/{id}")
