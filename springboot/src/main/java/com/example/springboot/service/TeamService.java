@@ -4,14 +4,15 @@ import com.example.springboot.dao.PlayerRepository;
 import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
+import com.example.springboot.util.CombinationGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 public class TeamService {
@@ -70,56 +71,43 @@ public class TeamService {
         }
     }
 
-    public List<List<Player>> generateTeamsWithBalancedRating(int count, String[] teamNames) {
-        List<Player> listOfRandomPlayers = playerRepository.findRandomPlayers(count);
-        int countOfPlayersInTeam = count / teamNames.length;
+    public List<List<Player>> generateTeamsWithBalancedRating(String[] teamNames) {
+        List<Player> listOfPlayers = playerRepository.findPlayers();
+        int countOfPlayersInTeam = listOfPlayers.size() / teamNames.length;
 
-        List<List<Player>> bestTeams = new ArrayList<>();
-        int smallestDifference = Integer.MAX_VALUE;
+        List<List<Player>> allCombinations = CombinationGenerator.generateCombinations(listOfPlayers, countOfPlayersInTeam);
 
-        List<List<Player>> allCombinations = IntStream.range(0, 1 << listOfRandomPlayers.size())
-                .mapToObj(i -> IntStream.range(0, listOfRandomPlayers.size())
-                        .filter(j -> (i & (1 << j)) > 0)
-                        .mapToObj(listOfRandomPlayers::get)
-                        .collect(Collectors.toList()))
-                .filter(team -> team.size() == countOfPlayersInTeam)
-                .toList();
-
-        for (List<Player> team : allCombinations) {
-            List<Player> remainingPlayers = listOfRandomPlayers.stream().filter(p -> !team.contains(p)).collect(Collectors.toList());
-
-            if (remainingPlayers.size() != countOfPlayersInTeam) {
-                continue;
+        List<List<List<Player>>> generatedCombinations = CombinationGenerator.generateCombinations(allCombinations, teamNames.length);
+        List<List<Player>> finalTeams = null;
+        int diff = Integer.MAX_VALUE;
+        for(List<List<Player>> teams : generatedCombinations){
+            boolean validTeamsCombinations = true;
+            for(List<Player> listPlayers : teams){
+                validTeamsCombinations = teams.stream().filter(t -> t != listPlayers).flatMap(t -> t.stream()).noneMatch(listPlayers::contains);
+                if(!validTeamsCombinations) {
+                    break;
+                }
             }
-
-            int ratingDifference = calculateTeamRatingDifference(team, remainingPlayers);
-
-            if (ratingDifference < smallestDifference) {
-                smallestDifference = ratingDifference;
-                bestTeams.clear();
-                bestTeams.add(new ArrayList<>(team));
-                bestTeams.add(new ArrayList<>(remainingPlayers));
+            if (validTeamsCombinations) {
+                List<Integer> teamRatings = teams.stream().map(this::calculateTeamRating).sorted(Comparator.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
+                System.out.println(teamRatings);
+                int currDiff = 0;
+                for (int i = 0; i < teamRatings.size() - 1; ++i) {
+                    currDiff += teamRatings.get(i) - teamRatings.get(i + 1);
+                }
+                if (currDiff < diff) {
+                    diff = currDiff;
+                    finalTeams = teams;
+                }
             }
         }
-
-        for (int i = 0; i < teamNames.length; i++) {
-            String teamName = teamNames[i];
-            List<Player> teamPlayers = bestTeams.get(i);
-            int teamRating = calculateTeamRating(teamPlayers) / countOfPlayersInTeam;
-            saveTeam(teamPlayers, teamRating, teamName);
+        for(int i = 0; i < teamNames.length; i++){
+            List<Player> playerList = finalTeams.get(i);
+            saveTeam(playerList, calculateTeamRating(playerList), teamNames[i]);
         }
-
-        for (List<Player> player : bestTeams) {
-            System.out.println(player.toString());
-        }
-        return bestTeams;
+        return finalTeams;
     }
 
-    public int calculateTeamRatingDifference(List<Player> team1, List<Player> team2) {
-        int ratingTeam1 = calculateTeamRating(team1);
-        int ratingTeam2 = calculateTeamRating(team2);
-        return Math.abs(ratingTeam1 - ratingTeam2);
-    }
     public int calculateTeamRating(List<Player> team) {
         return team.stream().mapToInt(Player::getRating).sum();
     }

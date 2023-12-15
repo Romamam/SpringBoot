@@ -16,8 +16,8 @@ import java.util.UUID;
 public interface PlayerRepository extends PagingAndSortingRepository<Player, UUID>, CrudRepository<Player, UUID> {
     Page<Player> findAll(Pageable pageable);
 
-    @Query(value = "SELECT * FROM players WHERE is_Active = true ORDER BY RAND() LIMIT :count", nativeQuery = true)
-    List<Player> findRandomPlayers(int count);
+    @Query(value = "SELECT * FROM players WHERE is_Active = true", nativeQuery = true)
+    List<Player> findPlayers();
 
     @Modifying
     @Query(value = "UPDATE players SET is_Active = false WHERE id = :id", nativeQuery = true)

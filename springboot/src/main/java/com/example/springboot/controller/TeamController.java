@@ -35,9 +35,9 @@ public class TeamController {
     @DeleteMapping("/delete-by-id/{id}")
     public void deleteTeamById(@PathVariable UUID id){teamService.deleteTeamById(id);}
 
-    @GetMapping("/generated-teams/{count}")
-    public List<List<Player>> generateTeamsWithBalancedRating(@PathVariable int count, @RequestParam String[] teamNames) {
-        return teamService.generateTeamsWithBalancedRating(count, teamNames);
+    @GetMapping("/generated-teams")
+    public List<List<Player>> generateTeamsWithBalancedRating(@RequestParam String[] teamNames) {
+        return teamService.generateTeamsWithBalancedRating(teamNames);
 }
 
     @GetMapping("/get-by-id/{id}")
