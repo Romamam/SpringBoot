@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,5 +26,17 @@ public class PlayerController {
     public ResponseEntity<?> makePlayerNotActive(@PathVariable UUID id){
         playerRepository.makeNotActive(id);
         return ResponseEntity.status(204).build();
+    }
+
+    @Transactional
+    @PostMapping("/restore/{id}")
+    public ResponseEntity<?> makePlayerActive(@PathVariable UUID id){
+        playerRepository.makeActive(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/deleteAll")
+    public void deleteAllPlayers(){
+        playerRepository.deleteAll();
     }
 }
