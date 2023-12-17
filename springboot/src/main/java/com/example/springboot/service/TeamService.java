@@ -120,5 +120,6 @@ public class TeamService {
         newTeam.setPlayers(team);
         playerRepository.saveAll(team);
         teamRepository.save(newTeam);
+
     }
 }
