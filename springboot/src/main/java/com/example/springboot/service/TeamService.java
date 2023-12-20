@@ -25,14 +25,7 @@ public class TeamService {
         this.playerRepository = playerDAO;
     }
 
-    public Optional<Team> getTeamWithPlayersById(UUID id){
-        return teamRepository.findByIdWithPlayers(id);
-    }
-
     public Optional<Team> getTeamByName(String name){return teamRepository.findByTeamName(name);}
-
-    public void deleteTeamById(UUID id){
-        teamRepository.deleteById(id);}
 
     public Optional<Team> addPlayerToTeam(Player player, String name){
         Optional<Team> teamOptional = getTeamByName(name);
@@ -70,9 +63,11 @@ public class TeamService {
             });
         }
     }
-
     public List<List<Player>> generateTeamsWithBalancedRating(String[] teamNames) {
         List<Player> listOfPlayers = playerRepository.findPlayers();
+        if(teamNames.length == 0 || listOfPlayers.isEmpty()){
+            return null;
+        }
         int countOfPlayersInTeam = listOfPlayers.size() / teamNames.length;
 
         List<List<Player>> allCombinations = CombinationGenerator.generateCombinations(listOfPlayers, countOfPlayersInTeam);
@@ -90,7 +85,6 @@ public class TeamService {
             }
             if (validTeamsCombinations) {
                 List<Integer> teamRatings = teams.stream().map(this::calculateTeamRating).sorted(Comparator.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
-                System.out.println(teamRatings);
                 int currDiff = 0;
                 for (int i = 0; i < teamRatings.size() - 1; ++i) {
                     currDiff += teamRatings.get(i) - teamRatings.get(i + 1);
@@ -108,8 +102,9 @@ public class TeamService {
         return finalTeams;
     }
 
+
     public int calculateTeamRating(List<Player> team) {
-        return team.stream().mapToInt(Player::getRating).sum();
+        return team.stream().mapToInt(Player::getRating).sum()/team.size();
     }
 
     public void saveTeam(List<Player> team, int rating, String teamName) {
