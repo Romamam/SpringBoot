@@ -1,85 +1,168 @@
 package com.example.springboot;
 
-import com.example.springboot.controller.TeamController;
 import com.example.springboot.dao.PlayerRepository;
 import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import com.example.springboot.service.TeamService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
 
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
-public class TeamServiceTest {
-    @Mock
-    private TeamService teamService;
+
+class TeamServiceTest {
 
     @Mock
     private PlayerRepository playerRepository;
 
+    @Mock
+    private TeamRepository teamRepository;
+
     @InjectMocks
-    private TeamController teamController;
-
-    public List<Player> createPlayersList() {
-        List<Player> players = new ArrayList<>();
-
-        // Додавання гравців до списку
-        players.add(new Player(UUID.randomUUID(), "Roman", "Rybachok", 99));
-        players.add(new Player(UUID.randomUUID(), "Dmytro", "Rybachok", 87));
-        players.add(new Player(UUID.randomUUID(), "Ruslan", "Rybachok", 86));
-        players.add(new Player(UUID.randomUUID(), "Artem", "Pryzhkov", 98));
-        players.add(new Player(UUID.randomUUID(), "Romaan", "Rybachok", 96));
-        players.add(new Player(UUID.randomUUID(), "Romasn", "Rybachok", 65));
-        players.add(new Player(UUID.randomUUID(), "Romadn", "Rybachok", 76));
-        players.add(new Player(UUID.randomUUID(), "Romafn", "Rybachok", 81));
-        players.add(new Player(UUID.randomUUID(), "Romacfn", "Rybachok", 57));
-        players.add(new Player(UUID.randomUUID(), "Romxan", "Rybachok", 92));
-        players.add(new Player(UUID.randomUUID(), "Romban", "Rybachok", 89));
-        players.add(new Player(UUID.randomUUID(), "Roweman", "Rybachok", 79));
-        players.add(new Player(UUID.randomUUID(), "Romyeryan", "Rybachok", 75));
-        players.add(new Player(UUID.randomUUID(), "Roegeman", "Rybachok", 57));
-
-        return players;
-    }
-
+    private TeamService teamService;
 
     @Test
-    public void testGenerateTeamsWithBalancedRating() {
+    void generateTeamsWithBalancedRating_ShouldGenerateTeams() {
+        MockitoAnnotations.openMocks(this);
 
-        List<Player> mockPlayers = createPlayersList();
-        when(playerRepository.findRandomPlayers(anyInt())).thenReturn(mockPlayers);
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList(
+                new Player(UUID.randomUUID(),"Player1", "Last1", 90),
+                new Player(UUID.randomUUID(),"Player2", "Last2", 80),
+                new Player(UUID.randomUUID(),"Player3", "Last3", 70),
+                new Player(UUID.randomUUID(),"Player4", "Last4", 60)
+        ));
 
-        System.out.println(mockPlayers.toString());
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{"Team1", "Team2"});
 
-        // Act
-        List<List<Player>> resultTeams = teamService.generateTeamsWithBalancedRating(6, "Team1", "Team2");
+        assertEquals(2, generatedTeams.size());
+
+        assertEquals(2, generatedTeams.get(0).size());
+        assertEquals(2, generatedTeams.get(1).size());
+
+        verify(teamRepository, times(2)).save(any(Team.class));
+    }
+
+    @Test
+    void generateTeamsWithBalancedRating_ShouldHandleEmptyPlayersList() {
+        MockitoAnnotations.openMocks(this);
+
+
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList());
+
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{"Team1", "Team2"});
+
+        assertNull(generatedTeams);
+        verify(teamRepository, never()).save(any(Team.class));
+    }
+
+    @Test
+    void generateTeamsWithBalancedRating_ShouldNotGenerateTeamsWithDuplicatePlayers() {
+        MockitoAnnotations.openMocks(this);
+
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList(
+                new Player(UUID.randomUUID(), "Player1", "Last1", 90),
+                new Player(UUID.randomUUID(), "Player2", "Last2", 80),
+                new Player(UUID.randomUUID(), "Player3", "Last3", 70),
+                new Player(UUID.randomUUID(), "Player4", "Last4", 60)
+        ));
+
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{"Team1", "Team2"});
+
+        assertEquals(2, generatedTeams.size());
+
+        for (int i = 0; i < generatedTeams.size(); i++) {
+            List<Player> teamA = generatedTeams.get(i);
+
+            for (int j = i + 1; j < generatedTeams.size(); j++) {
+                List<Player> teamB = generatedTeams.get(j);
+
+                for (Player playerA : teamA) {
+                    for (Player playerB : teamB) {
+                        assertNotEquals(playerA, playerB);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void generateTeamsWithBalancedRating_ShouldGenerateTeamsWithBalancedRatings() {
+        MockitoAnnotations.openMocks(this);
+
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList(
+                new Player(UUID.randomUUID(),"Player1", "Last1", 90),
+                new Player(UUID.randomUUID(),"Player2", "Last2", 80),
+                new Player(UUID.randomUUID(),"Player3", "Last3", 70),
+                new Player(UUID.randomUUID(),"Player4", "Last4", 60),
+                new Player(UUID.randomUUID(),"Player5", "Last4", 50),
+                new Player(UUID.randomUUID(),"Player6", "Last4", 40)
+        ));
+
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{"Team1", "Team2", "Team3"});
+        assertEquals(3, generatedTeams.size());
+
+        for (int i = 0; i < generatedTeams.size(); i++) {
+            for (int j = i + 1; j < generatedTeams.size(); j++) {
+                List<Player> teamA = generatedTeams.get(i);
+                List<Player> teamB = generatedTeams.get(j);
+
+                int ratingDifference = Math.abs(teamService.calculateTeamRating(teamA) - teamService.calculateTeamRating(teamB));
+                assertEquals(0,ratingDifference);
+                assertEquals(65,teamService.calculateTeamRating(teamA));
+                assertEquals(65,teamService.calculateTeamRating(teamB));
+            }
+        }
+    }
+
+    @Test
+    void generateTeamsWithBalancedRating_ShouldReturnEmptyList_WhenNoTeams() {
+        MockitoAnnotations.openMocks(this);
+
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList(
+                new Player(UUID.randomUUID(),"Player1", "Last1", 90),
+                new Player(UUID.randomUUID(),"Player2", "Last2", 80),
+                new Player(UUID.randomUUID(),"Player3", "Last3", 70),
+                new Player(UUID.randomUUID(),"Player4", "Last4", 60)
+        ));
+
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{});
+
+        assertNull(generatedTeams);
+    }
+
+    @Test
+    void generateTeamsWithBalancedRating_ShouldReturnTeamsWithBalancedRating_WhenPlayerCountNotMultipleOfTeamCount() {
+        MockitoAnnotations.openMocks(this);
+
+        when(playerRepository.findPlayers()).thenReturn(Arrays.asList(
+                new Player(UUID.randomUUID(),"Player1", "Last1", 90),
+                new Player(UUID.randomUUID(),"Player2", "Last2", 80),
+                new Player(UUID.randomUUID(),"Player3", "Last3", 70),
+                new Player(UUID.randomUUID(),"Player4", "Last4", 60),
+                new Player(UUID.randomUUID(),"Player5", "Last4", 50)
+        ));
+
+        List<List<Player>> generatedTeams = teamService.generateTeamsWithBalancedRating(new String[]{"Team1", "Team2"});
 
         // Assert
-        assertEquals(2, resultTeams.size());
-        assertEquals(3, resultTeams.get(0).size());
-        assertEquals(3, resultTeams.get(1).size());
-
-        // Verify the saveTeam method is called with the expected arguments
-        verify(teamService, times(1)).saveTeam(any(), anyInt(), eq("Team1"));
-        verify(teamService, times(1)).saveTeam(any(), anyInt(), eq("Team2"));
+        assertEquals(2, generatedTeams.size());
+        for (List<Player> team : generatedTeams) {
+            assertEquals(2, team.size());
+        }
     }
+
 }
