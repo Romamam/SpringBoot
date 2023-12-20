@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Player</title>
+</head>
+<body>
+
+<h2>Edit Player</h2>
+
+<form th:object="${player}" method="post" th:action="@{/editPlayer}">
+    <input type="hidden" th:field="*{id}"/>
+
+    <label th:for="name">Name:</label>
+    <input type="text" th:field="*{name}" th:value="${player.name}" required/>
+    <br/>
+
+    <label th:for="secondName">Second Name:</label>
+    <input type="text" th:field="*{secondName}" th:value="${player.secondName}" required/>
+    <br/>
+
+    <label th:for="rating">Rating:</label>
+    <input type="number" th:field="*{rating}" th:value="${player.rating}" required/>
+    <br/>
+
+    <button type="submit">Save Changes</button>
+</form>
+
+</body>
+</html>

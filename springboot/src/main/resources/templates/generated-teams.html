@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Teams</title>
+</head>
+<body>
+
+<h1>Generated Teams</h1>
+<a th:href="@{'/'}"><button>Home</button></a>
+
+
+<ul th:each="team, teamIndex : ${generatedTeams}">
+    <li>
+        <span  th:text="${teamNames[teamIndex.index]} + ': '"></span>
+        <ul th:each="player : ${team}">
+            <li>
+                <span th:text="${player.name} "></span>
+                <span th:text="' ' + ${player.secondName} "></span>
+                <span th:text="' (' + ${player.rating} + ')'"></span>
+            </li>
+        </ul>
+    </li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Player</title>
+</head>
+<body>
+
+<h1>Delete Player</h1>
+
+<p>Are you sure you want to delete the player:</p>
+<p th:text="${player.name + ' ' + player.secondName}"></p>
+
+<form th:action="@{'/delete-player/' + ${player.id}}" method="post">
+    <button type="submit">Delete</button>
+</form>
+
+<a th:href="@{/players}">Cancel</a>
+
+</body>
+</html>

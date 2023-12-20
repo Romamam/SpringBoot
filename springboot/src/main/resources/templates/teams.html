@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams Page</title>
+    <style>
+        table tr th {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        table tr th.sort-asc:after {
+            content: "\2191";
+        }
+
+        table tr th.sort-desc:after {
+            content: "\2193";
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>List of Teams</h1>
+
+<button onclick="deleteAll()">Delete All Teams</button>
+<a th:href="@{'/'}"><button>Home</button></a>
+
+<table id="myTable">
+    <thead>
+    <tr>
+        <th onclick="sortTable(0)">Team Name</th>
+        <th onclick="sortTable(1)">Rating</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:id="'row-' + ${team.id}" th:each="team : ${teams}">
+        <td th:text="${team.teamName}"></td>
+        <td th:text="${team.rating}"></td>
+        <td>
+            <a th:href="@{'/team/' + ${team.id}}">View</a> |
+            <a th:href="@{'/edit-team/' + ${team.id}}">Edit</a> |
+            <button th:data-teamId="${team.id}" th:onclick="deleteTeam(this.getAttribute('data-teamId'))">Delete Team</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    function sortTable(n) {
+        let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("myTable");
+        switching = true;
+        dir = "asc";
+        let allHeaders = table.getElementsByTagName("th");
+        for (i = 0; i < allHeaders.length; i++) {
+            allHeaders[i].classList.remove("sort-desc", "sort-asc");
+        }
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            } else {
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+
+        if (dir === "asc") {
+            allHeaders[n].classList.add("sort-asc");
+        } else {
+            allHeaders[n].classList.add("sort-desc");
+        }
+    }
+
+    function deleteTeam(teamId) {
+        const url = "/delete-team/" + teamId;
+
+        fetch(url, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    var row = document.getElementById("row-" + teamId);
+                    console.log(row)
+
+                    if (row) {
+                        row.remove();
+                    }
+                } else {
+                    alert('Failed to delete team.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting team.');
+            });
+    }
+
+    function deleteAll() {
+        if (confirm('Are you sure you want to delete all teams?')) {
+            const deleteUrl = "/delete-all-teams";
+
+            fetch(deleteUrl, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        alert('All players have been deleted.');
+                        location.reload();
+                    } else {
+                        alert('Failed to delete all players.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting all players.');
+                });
+        }
+    }
+</script>
+
+</body>
+</html>

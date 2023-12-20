@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Details</title>
+</head>
+<body>
+
+<h1>Team Details</h1>
+<a th:href="@{'/'}"><button>Home</button></a>
+
+
+<p>ID: <span th:text="${team.id}"></span></p>
+<p>Name: <span th:text="${team.teamName}"></span></p>
+<p>Rating: <span th:text="${team.rating}"></span></p>
+
+<div>
+<!--    <a th:href="@{'/edit-player/' + ${team.id}}">-->
+<!--        <button>Edit player</button>-->
+<!--    </a>-->
+</div>
+
+<h2>Team Players:</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Second Name</th>
+        <th>Rating</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="player : ${team.players}">
+        <td th:text="${player.name}"></td>
+        <td th:text="${player.secondName}"></td>
+        <td th:text="${player.rating}"></td>
+        <td th:text="${player.active}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

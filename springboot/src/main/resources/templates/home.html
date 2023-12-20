@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваша сторінка</title>
+</head>
+<body>
+
+<a th:href="@{/players}"><button>Players</button></a>
+<a th:href="@{/teams}"><button>Teams</button></a>
+<a th:href="@{/generate-teams}"><button>Generate teams</button></a>
+
+
+<script>
+    function showPlayers() {
+        console.log("Відображення гравців");
+    }
+
+    function showTeams() {
+        console.log("Відображення команд");
+    }
+
+    function createTeam() {
+        console.log("Створення команди");
+    }
+</script>
+
+</body>
+</html>
