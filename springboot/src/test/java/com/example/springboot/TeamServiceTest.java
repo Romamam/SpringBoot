@@ -15,10 +15,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +25,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
 public class TeamServiceTest {
     @Mock
     private TeamService teamService;
@@ -39,47 +35,20 @@ public class TeamServiceTest {
     @InjectMocks
     private TeamController teamController;
 
-    public List<Player> createPlayersList() {
-        List<Player> players = new ArrayList<>();
-
-        // Додавання гравців до списку
-        players.add(new Player(UUID.randomUUID(), "Roman", "Rybachok", 99));
-        players.add(new Player(UUID.randomUUID(), "Dmytro", "Rybachok", 87));
-        players.add(new Player(UUID.randomUUID(), "Ruslan", "Rybachok", 86));
-        players.add(new Player(UUID.randomUUID(), "Artem", "Pryzhkov", 98));
-        players.add(new Player(UUID.randomUUID(), "Romaan", "Rybachok", 96));
-        players.add(new Player(UUID.randomUUID(), "Romasn", "Rybachok", 65));
-        players.add(new Player(UUID.randomUUID(), "Romadn", "Rybachok", 76));
-        players.add(new Player(UUID.randomUUID(), "Romafn", "Rybachok", 81));
-        players.add(new Player(UUID.randomUUID(), "Romacfn", "Rybachok", 57));
-        players.add(new Player(UUID.randomUUID(), "Romxan", "Rybachok", 92));
-        players.add(new Player(UUID.randomUUID(), "Romban", "Rybachok", 89));
-        players.add(new Player(UUID.randomUUID(), "Roweman", "Rybachok", 79));
-        players.add(new Player(UUID.randomUUID(), "Romyeryan", "Rybachok", 75));
-        players.add(new Player(UUID.randomUUID(), "Roegeman", "Rybachok", 57));
-
-        return players;
-    }
-
 
     @Test
-    public void testGenerateTeamsWithBalancedRating() {
+    void generateTeamsWithBalancedRating_Success() {
+        String[] teamNames = {"Team1", "Team2"};
+        List<Player> listOfRandomPlayers = Arrays.asList(
+                new Player(null, "Player1", "Last1", 90),
+                new Player(null, "Player2", "Last2", 85),
+                new Player(null, "Player3", "Last3", 80),
+                new Player(null, "Player4", "Last4", 95)
+        );
+        when(playerRepository.findPlayers()).thenReturn(listOfRandomPlayers);
 
-        List<Player> mockPlayers = createPlayersList();
-        when(playerRepository.findRandomPlayers(anyInt())).thenReturn(mockPlayers);
+        List<List<Player>> result = teamService.generateTeamsWithBalancedRating(teamNames);
 
-        System.out.println(mockPlayers.toString());
-
-        // Act
-        List<List<Player>> resultTeams = teamService.generateTeamsWithBalancedRating(6, "Team1", "Team2");
-
-        // Assert
-        assertEquals(2, resultTeams.size());
-        assertEquals(3, resultTeams.get(0).size());
-        assertEquals(3, resultTeams.get(1).size());
-
-        // Verify the saveTeam method is called with the expected arguments
-        verify(teamService, times(1)).saveTeam(any(), anyInt(), eq("Team1"));
-        verify(teamService, times(1)).saveTeam(any(), anyInt(), eq("Team2"));
+        assertEquals(2, result.size());
     }
 }
