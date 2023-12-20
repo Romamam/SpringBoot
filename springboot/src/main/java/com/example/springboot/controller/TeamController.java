@@ -5,12 +5,16 @@ import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
 import com.example.springboot.service.TeamService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/team")
@@ -32,17 +36,9 @@ public class TeamController {
         return teamService.getTeamByName(name);
     }
 
-    @DeleteMapping("/delete-by-id/{id}")
-    public void deleteTeamById(@PathVariable UUID id){teamService.deleteTeamById(id);}
-
     @GetMapping("/generated-teams")
     public List<List<Player>> generateTeamsWithBalancedRating(@RequestParam String[] teamNames) {
         return teamService.generateTeamsWithBalancedRating(teamNames);
-}
-
-    @GetMapping("/get-by-id/{id}")
-    public Optional<Team> getTeamById(@PathVariable UUID id){
-        return teamService.getTeamWithPlayersById(id);
     }
 
     @PostMapping("/add-player/{teamName}-{playerName}")
