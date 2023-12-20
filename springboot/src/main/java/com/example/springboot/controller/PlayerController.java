@@ -1,6 +1,8 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.dao.PlayerRepository;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,17 +24,14 @@ public class PlayerController {
     }
 
     @Transactional
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> makePlayerNotActive(@PathVariable UUID id){
-        playerRepository.makeNotActive(id);
-        return ResponseEntity.status(204).build();
-    }
-
-    @Transactional
-    @PostMapping("/restore/{id}")
-    public ResponseEntity<?> makePlayerActive(@PathVariable UUID id){
-        playerRepository.makeActive(id);
-        return ResponseEntity.ok().build();
+    @PostMapping("/change-status/{id}")
+    public ResponseEntity<?> changeStatusPlayerActiveOrNotActive(@PathVariable UUID id) {
+        try {
+            playerRepository.toggleActiveStatus(id);
+            return ResponseEntity.ok().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player with ID " + id + " not found");
+        }
     }
 
     @DeleteMapping("/deleteAll")
