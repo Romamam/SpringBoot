@@ -20,12 +20,8 @@ public interface PlayerRepository extends PagingAndSortingRepository<Player, UUI
     List<Player> findPlayers();
 
     @Modifying
-    @Query(value = "UPDATE players SET is_Active = false WHERE id = :id", nativeQuery = true)
-    void makeNotActive(UUID id);
-
-    @Modifying
-    @Query(value = "UPDATE players SET is_Active = true WHERE is_Active = false AND id = :id", nativeQuery = true)
-    void makeActive(UUID id);
+    @Query(value = "UPDATE players SET is_Active = CASE WHEN is_Active = true THEN false ELSE true END WHERE id = :id", nativeQuery = true)
+    void toggleActiveStatus(UUID id);
 
     Player findPlayerByName(String name);
 }
