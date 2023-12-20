@@ -4,15 +4,11 @@ import com.example.springboot.dao.PlayerRepository;
 import com.example.springboot.dao.TeamRepository;
 import com.example.springboot.model.Player;
 import com.example.springboot.model.Team;
-import com.example.springboot.util.CombinationGenerator;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class TeamService {
@@ -71,42 +67,96 @@ public class TeamService {
         }
     }
 
-    public List<List<Player>> generateTeamsWithBalancedRating(String[] teamNames) {
-        List<Player> listOfPlayers = playerRepository.findPlayers();
-        int countOfPlayersInTeam = listOfPlayers.size() / teamNames.length;
+    private List<List<Player>> generateAllCombinations(List<Player> players, int countOfPlayersInTeam) {
+        List<List<Player>> allCombinations = new ArrayList<>();
 
-        List<List<Player>> allCombinations = CombinationGenerator.generateCombinations(listOfPlayers, countOfPlayersInTeam);
+        int numberOfPlayers = players.size();
 
-        List<List<List<Player>>> generatedCombinations = CombinationGenerator.generateCombinations(allCombinations, teamNames.length);
-        List<List<Player>> finalTeams = null;
-        int diff = Integer.MAX_VALUE;
-        for(List<List<Player>> teams : generatedCombinations){
-            boolean validTeamsCombinations = true;
-            for(List<Player> listPlayers : teams){
-                validTeamsCombinations = teams.stream().filter(t -> t != listPlayers).flatMap(t -> t.stream()).noneMatch(listPlayers::contains);
-                if(!validTeamsCombinations) {
-                    break;
-                }
-            }
-            if (validTeamsCombinations) {
-                List<Integer> teamRatings = teams.stream().map(this::calculateTeamRating).sorted(Comparator.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
-                System.out.println(teamRatings);
-                int currDiff = 0;
-                for (int i = 0; i < teamRatings.size() - 1; ++i) {
-                    currDiff += teamRatings.get(i) - teamRatings.get(i + 1);
-                }
-                if (currDiff < diff) {
-                    diff = currDiff;
-                    finalTeams = teams;
-                }
+        for (int i = 0; i < 1 << numberOfPlayers; i++) {
+            int finalI = i;
+            List<Player> team = IntStream.range(0, numberOfPlayers)
+                    .filter(j -> (finalI & (1 << j)) > 0)
+                    .mapToObj(players::get)
+                    .collect(Collectors.toList());
+
+            if (team.size() == countOfPlayersInTeam && hasUniquePlayers(team, allCombinations)) {
+                allCombinations.add(team);
             }
         }
-        for(int i = 0; i < teamNames.length; i++){
-            List<Player> playerList = finalTeams.get(i);
-            saveTeam(playerList, calculateTeamRating(playerList), teamNames[i]);
-        }
-        return finalTeams;
+
+        return allCombinations;
     }
+
+    private boolean hasUniquePlayers(List<Player> team, List<List<Player>> existingTeams) {
+        Set<UUID> uniquePlayerIds = new HashSet<>();
+        for (Player player : team) {
+            if (!uniquePlayerIds.add(player.getId())) {
+                return false;
+            }
+        }
+
+        for (List<Player> existingTeam : existingTeams) {
+            if (existingTeam.stream().anyMatch(player -> uniquePlayerIds.contains(player.getId()))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+public List<List<Player>> generateTeamsWithBalancedRating(String[] teamNames) {
+    List<Player> listOfRandomPlayers = playerRepository.findPlayers();
+    int countOfPlayersInTeam = listOfRandomPlayers.size() / teamNames.length;
+
+    List<List<Player>> bestTeams = generateTeams(listOfRandomPlayers, countOfPlayersInTeam, teamNames.length);
+
+    for (int i = 0; i < teamNames.length; i++) {
+        List<Player> playerList = bestTeams.get(i);
+        saveTeam(playerList, calculateTeamRating(playerList), teamNames[i]);
+    }
+
+    return bestTeams;
+}
+
+    private List<List<Player>> generateTeams(List<Player> players, int countOfPlayersInTeam, int numOfTeams) {
+        List<List<Player>> bestTeams = new ArrayList<>();
+        int smallestDifference = Integer.MAX_VALUE;
+
+        List<List<Player>> allCombinations = generateAllCombinations(players, countOfPlayersInTeam * numOfTeams);
+
+        for (List<Player> combination : allCombinations) {
+            List<List<Player>> teams = new ArrayList<>();
+            for (int i = 0; i < numOfTeams; i++) {
+                int startIdx = i * countOfPlayersInTeam;
+                int endIdx = startIdx + countOfPlayersInTeam;
+                List<Player> team = combination.subList(startIdx, endIdx);
+                teams.add(new ArrayList<>(team));
+            }
+
+            int difference = calculateDifference(teams);
+
+            if (difference < smallestDifference) {
+                smallestDifference = difference;
+                bestTeams = new ArrayList<>(teams);
+            }
+        }
+
+        return bestTeams;
+    }
+
+    private int calculateDifference(List<List<Player>> teams) {
+        int totalDifference = 0;
+
+        for (int i = 0; i < teams.size() - 1; i++) {
+            for (int j = i + 1; j < teams.size(); j++) {
+                int ratingTeam1 = calculateTeamRating(teams.get(i));
+                int ratingTeam2 = calculateTeamRating(teams.get(j));
+                totalDifference += Math.abs(ratingTeam1 - ratingTeam2);
+            }
+        }
+
+        return totalDifference;
+    }
+
 
     public int calculateTeamRating(List<Player> team) {
         return team.stream().mapToInt(Player::getRating).sum();
